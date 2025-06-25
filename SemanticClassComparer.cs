@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 using System.Security.Cryptography;
-
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace SymanticCopy;
 
@@ -217,7 +217,7 @@ public class SemanticClassComparer
             var member2 = members2[memberName];
 
             // Skip abstract/extern members without implementation
-            if (IsAbstractOrExtern(member1) continue;
+            if (IsAbstractOrExtern(member1)) continue;
 
             var impl1 = GetNormalizedImplementation(member1);
             var impl2 = GetNormalizedImplementation(member2);
@@ -347,7 +347,7 @@ public class SemanticClassComparer
     private string GetAccessibility(MemberDeclarationSyntax member)
     {
         var modifiers = member.Modifiers;
-        return modifiers.FirstOrDefault(m => IsAccessModifier(m.ToString()))?.ToString() ?? "private";
+        return modifiers.FirstOrDefault(m => IsAccessModifier(m.ToString())).ToString(); //?? "private";
     }
 
     private bool IsAccessModifier(string modifier)
@@ -363,7 +363,7 @@ public class SemanticClassComparer
 
     private bool IsAbstractOrExtern(MemberDeclarationSyntax member)
     {
-        return member.Modifiers.Any(m => m.IsKind(SyntaxKind.AbstractKeyword) ||
+        return member.Modifiers.Any(m => m.IsKind(SyntaxKind.AbstractKeyword)) ||
                member.Modifiers.Any(m => m.IsKind(SyntaxKind.ExternKeyword));
     }
 

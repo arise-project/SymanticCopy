@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -68,7 +68,7 @@ public class DictionaryCsvSerializer
         }
         else if (typeof(TValue).IsClass && typeof(TValue) != typeof(string))
         {
-            SerializeClassDictionary(dictionary, csvContent);
+            SerializeClassDictionary<TKey, TValue>(dictionary, csvContent);
         }
         else
         {
@@ -142,6 +142,7 @@ public class DictionaryCsvSerializer
     }
 
     public Dictionary<TKey, TValue> Deserialize<TKey, TValue>(string filePath)
+    where TValue : new()
     {
         if (!File.Exists(filePath))
         {
