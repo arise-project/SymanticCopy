@@ -44,9 +44,13 @@ public class SolutionPairAnalyzer
     public class AnalysisResult
     {
         public List<string> CommonClassNames { get; } = new List<string>();
+
         public Dictionary<string, List<string>> Solution1Duplicates { get; } = new Dictionary<string, List<string>>();
+
         public Dictionary<string, List<string>> Solution2Duplicates { get; } = new Dictionary<string, List<string>>();
+
         public List<string> Solution1Unique { get; } = new List<string>();
+
         public List<string> Solution2Unique { get; } = new List<string>();
     }
 
@@ -59,7 +63,10 @@ public class SolutionPairAnalyzer
         var solution2Classes = GetSolutionClassNames(solution2Path);
 
         // Find common classes
-        var allClassNames = new HashSet<string>(solution1Classes.Keys.Concat(solution2Classes.Keys));
+        var allClassNames = new HashSet<string>(
+				solution1Classes
+				.Keys
+				.Concat(solution2Classes.Keys));
 
         foreach (var className in allClassNames)
         {
@@ -110,7 +117,8 @@ public class SolutionPairAnalyzer
 
         if (!File.Exists(solutionPath))
         {
-            throw new FileNotFoundException($"Solution file not found: {solutionPath}");
+            throw new FileNotFoundException(
+			$"Solution file not found: {solutionPath}");
         }
 
         var solution = SolutionFile.Parse(solutionPath);
@@ -120,14 +128,19 @@ public class SolutionPairAnalyzer
             if (project.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
             {
                 var projectDirectory = Path.GetDirectoryName(project.AbsolutePath);
-                var csFiles = Directory.GetFiles(projectDirectory, "*.cs", SearchOption.AllDirectories);
+                
+		var csFiles = Directory.GetFiles(
+					projectDirectory, 
+					"*.cs", 
+					SearchOption.AllDirectories);
 
                 foreach (var filePath in csFiles)
                 {
                     try
                     {
                         var fileContent = File.ReadAllText(filePath);
-                        var syntaxTree = CSharpSyntaxTree.ParseText(fileContent);
+                        
+			var syntaxTree = CSharpSyntaxTree.ParseText(fileContent);
                         var root = syntaxTree.GetRoot();
 
                         // Get all type declarations
@@ -142,10 +155,14 @@ public class SolutionPairAnalyzer
                             var typeName = typeDecl switch
                             {
                                 ClassDeclarationSyntax classDecl => classDecl.Identifier.Text,
-                                StructDeclarationSyntax structDecl => structDecl.Identifier.Text,
-                                RecordDeclarationSyntax recordDecl => recordDecl.Identifier.Text,
-                                InterfaceDeclarationSyntax interfaceDecl => interfaceDecl.Identifier.Text,
-                                _ => throw new NotSupportedException()
+                        
+			        StructDeclarationSyntax structDecl => structDecl.Identifier.Text,
+                        
+			        RecordDeclarationSyntax recordDecl => recordDecl.Identifier.Text,
+                        
+			        InterfaceDeclarationSyntax interfaceDecl => interfaceDecl.Identifier.Text,
+                        
+			        _ => throw new NotSupportedException()
                             };
 
                             if (!classMap.ContainsKey(typeName))
@@ -158,7 +175,8 @@ public class SolutionPairAnalyzer
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
+                        Console.WriteLine(
+				$"Error processing file {filePath}: {ex.Message}");
                     }
                 }
             }
@@ -170,7 +188,8 @@ public class SolutionPairAnalyzer
     private string GetRelativePath(string fullPath, string solutionPath)
     {
         var solutionDir = Path.GetDirectoryName(solutionPath);
-        return Path.GetRelativePath(solutionDir, fullPath);
+        
+	return Path.GetRelativePath(solutionDir, fullPath);
     }
 
     public void PrintComparisonResult(AnalysisResult result)
@@ -183,10 +202,12 @@ public class SolutionPairAnalyzer
         if (result.Solution1Duplicates.Count > 0)
         {
             Console.WriteLine("\nDuplicate classes in Solution 1:");
-            foreach (var kvp in result.Solution1Duplicates)
+        
+	    foreach (var kvp in result.Solution1Duplicates)
             {
                 Console.WriteLine($"- {kvp.Key} ({kvp.Value.Count} occurrences)");
-                foreach (var path in kvp.Value)
+        
+	        foreach (var path in kvp.Value)
                 {
                     Console.WriteLine($"  - {path}");
                 }
@@ -196,10 +217,12 @@ public class SolutionPairAnalyzer
         if (result.Solution2Duplicates.Count > 0)
         {
             Console.WriteLine("\nDuplicate classes in Solution 2:");
-            foreach (var kvp in result.Solution2Duplicates)
+        
+	    foreach (var kvp in result.Solution2Duplicates)
             {
                 Console.WriteLine($"- {kvp.Key} ({kvp.Value.Count} occurrences)");
-                foreach (var path in kvp.Value)
+        
+	        foreach (var path in kvp.Value)
                 {
                     Console.WriteLine($"  - {path}");
                 }

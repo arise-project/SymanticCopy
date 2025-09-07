@@ -43,11 +43,13 @@ public class SolutionClassTraverser
     {
         if (!File.Exists(projectPath))
         {
-            throw new FileNotFoundException($"Project file not found: {projectPath}");
+            throw new FileNotFoundException(
+			$"Project file not found: {projectPath}");
         }
 
         var projectDirectory = Path.GetDirectoryName(projectPath);
-        var csFiles = GetProjectCsFiles(projectPath, projectDirectory);
+        
+	var csFiles = GetProjectCsFiles(projectPath, projectDirectory);
 
         var projectClasses = new Dictionary<string, string>();
 
