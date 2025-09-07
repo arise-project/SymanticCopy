@@ -20,7 +20,8 @@ public class SolutionClassTraverser
 
         if (!File.Exists(solutionPath))
         {
-            throw new FileNotFoundException($"Solution file not found: {solutionPath}");
+            throw new FileNotFoundException(
+            	$"Solution file not found: {solutionPath}");
         }
 
         var solution = SolutionFile.Parse(solutionPath);
@@ -30,6 +31,7 @@ public class SolutionClassTraverser
             if (project.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
             {
                 var projectClasses = ParseProject(project.AbsolutePath);
+
                 MergeDictionaries(solutionClasses, projectClasses);
             }
         }
@@ -54,25 +56,34 @@ public class SolutionClassTraverser
             try
             {
                 var fileClasses = _parser.ParseFile(filePath);
+
                 MergeDictionaries(projectClasses, fileClasses);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
+                Console.WriteLine(
+                	$"Error processing file {filePath}: {ex.Message}");
             }
         }
 
         return projectClasses;
     }
 
-    private List<string> GetProjectCsFiles(string projectPath, string projectDirectory)
+    private List<string> GetProjectCsFiles(
+    	string projectPath, 
+    	string projectDirectory)
     {
         // Simple approach - get all .cs files in project directory
         // For more accuracy, we should parse the .csproj file and honor includes/excludes
-        return Directory.GetFiles(projectDirectory, "*.cs", SearchOption.AllDirectories).ToList();
+        return Directory.GetFiles(
+        	projectDirectory, 
+        	"*.cs", 
+        	SearchOption.AllDirectories).ToList();
     }
 
-    private void MergeDictionaries(Dictionary<string, string> target, Dictionary<string, string> source)
+    private void MergeDictionaries(
+    	Dictionary<string, string> target, 
+    	Dictionary<string, string> source)
     {
         foreach (var kvp in source)
         {
@@ -80,6 +91,7 @@ public class SolutionClassTraverser
             {
                 // Handle duplicate class names by adding a disambiguator
                 var newKey = $"{kvp.Key}_{Path.GetRandomFileName().Substring(0, 4)}";
+
                 target[newKey] = kvp.Value;
             }
             else

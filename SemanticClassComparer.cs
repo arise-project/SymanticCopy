@@ -57,30 +57,43 @@ public class SemanticClassComparer
     public class ComparisonResult
     {
         public bool AreSignaturesEqual { get; set; }
+
         public bool AreImplementationsSemanticallyEqual { get; set; }
+
         public double SimilarityScore { get; set; }
+
         public List<MemberDifference> MemberDifferences { get; } = new List<MemberDifference>();
+
         public List<string> Warnings { get; } = new List<string>();
     }
 
     public class MemberDifference
     {
         public string MemberName { get; set; }
+
         public DifferenceType Type { get; set; }
+
         public string Description { get; set; }
     }
 
     public enum DifferenceType
     {
         SignatureChange,
+
         ImplementationChange,
+
         AddedMember,
+
         RemovedMember,
+
         AccessibilityChange,
+
         ModifierChange
     }
 
-    public ComparisonResult CompareClasses(string class1Content, string class2Content)
+    public ComparisonResult CompareClasses(
+    	string class1Content, 
+    	string class2Content)
     {
         var result = new ComparisonResult();
 
@@ -88,22 +101,34 @@ public class SemanticClassComparer
         var syntaxTree1 = CSharpSyntaxTree.ParseText(class1Content);
         var syntaxTree2 = CSharpSyntaxTree.ParseText(class2Content);
 
-        var class1 = syntaxTree1.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-        var class2 = syntaxTree2.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        var class1 = syntaxTree1
+        				.GetRoot()
+        				.DescendantNodes()
+        				.OfType<ClassDeclarationSyntax>()
+        				.FirstOrDefault();
+
+        var class2 = syntaxTree2
+        				.GetRoot()
+        				.DescendantNodes()
+        				.OfType<ClassDeclarationSyntax>()
+        				.FirstOrDefault();
 
         if (class1 == null || class2 == null)
         {
             result.Warnings.Add("One or both inputs are not valid class declarations");
+
             return result;
         }
 
         // Compare signatures (structure)
         var signatureComparison = CompareSignatures(class1, class2);
+
         result.AreSignaturesEqual = signatureComparison.AreEqual;
         result.MemberDifferences.AddRange(signatureComparison.Differences);
 
         // Compare implementations (semantics)
         var semanticComparison = CompareImplementations(class1, class2);
+
         result.AreImplementationsSemanticallyEqual = semanticComparison.AreEqual;
         result.SimilarityScore = semanticComparison.SimilarityScore;
         result.MemberDifferences.AddRange(semanticComparison.Differences);
@@ -111,9 +136,12 @@ public class SemanticClassComparer
         return result;
     }
 
-    private SignatureComparisonResult CompareSignatures(ClassDeclarationSyntax class1, ClassDeclarationSyntax class2)
+    private SignatureComparisonResult CompareSignatures(
+    	ClassDeclarationSyntax class1, 
+    	ClassDeclarationSyntax class2)
     {
         var result = new SignatureComparisonResult();
+
         var members1 = GetMembers(class1);
         var members2 = GetMembers(class2);
 
@@ -123,22 +151,24 @@ public class SemanticClassComparer
 
         foreach (var addedMember in memberNames2.Except(memberNames1))
         {
-            result.Differences.Add(new MemberDifference
-            {
-                MemberName = addedMember,
-                Type = DifferenceType.AddedMember,
-                Description = $"Member '{addedMember}' was added"
-            });
+            result.Differences.Add(
+	            new MemberDifference
+	            {
+	                MemberName = addedMember,
+	                Type = DifferenceType.AddedMember,
+	                Description = $"Member '{addedMember}' was added"
+	            });
         }
 
         foreach (var removedMember in memberNames1.Except(memberNames2))
         {
-            result.Differences.Add(new MemberDifference
-            {
-                MemberName = removedMember,
-                Type = DifferenceType.RemovedMember,
-                Description = $"Member '{removedMember}' was removed"
-            });
+            result.Differences.Add(
+	            new MemberDifference
+	            {
+	                MemberName = removedMember,
+	                Type = DifferenceType.RemovedMember,
+	                Description = $"Member '{removedMember}' was removed"
+	            });
         }
 
         // Compare common members
@@ -153,12 +183,13 @@ public class SemanticClassComparer
 
             if (signature1 != signature2)
             {
-                result.Differences.Add(new MemberDifference
-                {
-                    MemberName = memberName,
-                    Type = DifferenceType.SignatureChange,
-                    Description = $"Signature changed from '{signature1}' to '{signature2}'"
-                });
+                result.Differences.Add(
+	                new MemberDifference
+	                {
+	                    MemberName = memberName,
+	                    Type = DifferenceType.SignatureChange,
+	                    Description = $"Signature changed from '{signature1}' to '{signature2}'"
+	                });
             }
 
             // Compare accessibility
@@ -167,12 +198,13 @@ public class SemanticClassComparer
 
             if (accessibility1 != accessibility2)
             {
-                result.Differences.Add(new MemberDifference
-                {
-                    MemberName = memberName,
-                    Type = DifferenceType.AccessibilityChange,
-                    Description = $"Accessibility changed from {accessibility1} to {accessibility2}"
-                });
+                result.Differences.Add(
+	                new MemberDifference
+	                {
+	                    MemberName = memberName,
+	                    Type = DifferenceType.AccessibilityChange,
+	                    Description = $"Accessibility changed from {accessibility1} to {accessibility2}"
+	                });
             }
 
             // Compare modifiers
@@ -181,30 +213,40 @@ public class SemanticClassComparer
 
             if (!modifiers1.SequenceEqual(modifiers2))
             {
-                result.Differences.Add(new MemberDifference
-                {
-                    MemberName = memberName,
-                    Type = DifferenceType.ModifierChange,
-                    Description = $"Modifiers changed from [{string.Join(", ", modifiers1)}] to [{string.Join(", ", modifiers2)}]"
-                });
+                result.Differences.Add(
+	                new MemberDifference
+	                {
+	                    MemberName = memberName,
+	                    Type = DifferenceType.ModifierChange,
+	                    Description = $"Modifiers changed from [{string.Join(", ", modifiers1)}] to [{string.Join(", ", modifiers2)}]"
+	                });
             }
         }
 
         result.AreEqual = result.Differences.Count == 0;
+
         return result;
     }
 
-    private SemanticComparisonResult CompareImplementations(ClassDeclarationSyntax class1, ClassDeclarationSyntax class2)
+    private SemanticComparisonResult CompareImplementations(
+    	ClassDeclarationSyntax class1, 
+    	ClassDeclarationSyntax class2)
     {
         var result = new SemanticComparisonResult();
+
         var members1 = GetMembers(class1);
         var members2 = GetMembers(class2);
 
-        var commonMembers = members1.Keys.Intersect(members2.Keys).ToList();
+        var commonMembers = members1
+        						.Keys
+        						.Intersect(members2.Keys)
+        						.ToList();
+
         if (commonMembers.Count == 0)
         {
             result.AreEqual = false;
             result.SimilarityScore = 0;
+
             return result;
         }
 
@@ -217,7 +259,8 @@ public class SemanticClassComparer
             var member2 = members2[memberName];
 
             // Skip abstract/extern members without implementation
-            if (IsAbstractOrExtern(member1)) continue;
+            if (IsAbstractOrExtern(member1)) 
+            	continue;
 
             var impl1 = GetNormalizedImplementation(member1);
             var impl2 = GetNormalizedImplementation(member2);
@@ -235,26 +278,31 @@ public class SemanticClassComparer
             {
                 // Calculate similarity score for different implementations
                 var similarity = CalculateCodeSimilarity(impl1, impl2);
+
                 totalSimilarity += similarity;
 
                 if (similarity < 0.95) // Threshold for considering different
                 {
-                    result.Differences.Add(new MemberDifference
-                    {
-                        MemberName = memberName,
-                        Type = DifferenceType.ImplementationChange,
-                        Description = $"Implementation changed (similarity: {similarity:P0})"
-                    });
+                    result.Differences.Add(
+	                    new MemberDifference
+	                    {
+	                        MemberName = memberName,
+	                        Type = DifferenceType.ImplementationChange,
+	                        Description = $"Implementation changed (similarity: {similarity:P0})"
+	                    });
                 }
             }
         }
 
         result.AreEqual = matchingMembers == commonMembers.Count;
         result.SimilarityScore = commonMembers.Count > 0 ? totalSimilarity / commonMembers.Count : 0;
+
         return result;
     }
 
-    private double CalculateCodeSimilarity(string code1, string code2)
+    private double CalculateCodeSimilarity(
+    	string code1, 
+    	string code2)
     {
         // Simple token-based similarity (can be enhanced with more advanced techniques)
         var tokens1 = GetCodeTokens(code1);
@@ -285,16 +333,21 @@ public class SemanticClassComparer
 
     private string GetSemanticHash(string code)
     {
-        if (string.IsNullOrEmpty(code)) return string.Empty;
+        if (string.IsNullOrEmpty(code))
+        	 return string.Empty;
+
         var bytes = Encoding.UTF8.GetBytes(code);
         var hash = _hashAlgorithm.ComputeHash(bytes);
         return Convert.ToBase64String(hash);
     }
 
-    private string GetNormalizedImplementation(MemberDeclarationSyntax member)
+    private string GetNormalizedImplementation(
+    	MemberDeclarationSyntax member)
     {
         // Remove all trivia (comments, whitespace)
-        var normalized = member.WithoutTrivia().NormalizeWhitespace().ToFullString();
+        var normalized = member.WithoutTrivia()
+        					   .NormalizeWhitespace()
+        					   .ToFullString();
 
         // Additional normalization steps:
         // 1. Standardize variable names (var1, var2, etc.)
@@ -304,13 +357,15 @@ public class SemanticClassComparer
         return normalized;
     }
 
-    private Dictionary<string, MemberDeclarationSyntax> GetMembers(ClassDeclarationSyntax classDecl)
+    private Dictionary<string, MemberDeclarationSyntax> GetMembers(
+    	ClassDeclarationSyntax classDecl)
     {
         var members = new Dictionary<string, MemberDeclarationSyntax>();
 
         foreach (var member in classDecl.Members)
         {
             string name = GetMemberName(member);
+
             if (!string.IsNullOrEmpty(name))
             {
                 members[name] = member;
@@ -325,9 +380,13 @@ public class SemanticClassComparer
         return member switch
         {
             MethodDeclarationSyntax method => method.Identifier.Text,
+
             PropertyDeclarationSyntax prop => prop.Identifier.Text,
+
             FieldDeclarationSyntax field => field.Declaration.Variables.First().Identifier.Text,
+
             EventDeclarationSyntax evt => evt.Identifier.Text,
+
             _ => null
         };
     }
@@ -337,8 +396,11 @@ public class SemanticClassComparer
         return member switch
         {
             MethodDeclarationSyntax method => $"{method.ReturnType} {method.Identifier}{method.ParameterList}",
+
             PropertyDeclarationSyntax prop => $"{prop.Type} {prop.Identifier} {{ {(prop.AccessorList?.Accessors.ToString() ?? "")} }}",
+
             FieldDeclarationSyntax field => $"{field.Declaration.Type} {field.Declaration.Variables.First().Identifier}",
+
             EventDeclarationSyntax evt => $"event {evt.Type} {evt.Identifier}",
             _ => member.ToString()
         };
@@ -347,7 +409,11 @@ public class SemanticClassComparer
     private string GetAccessibility(MemberDeclarationSyntax member)
     {
         var modifiers = member.Modifiers;
-        return modifiers.FirstOrDefault(m => IsAccessModifier(m.ToString())).ToString(); //?? "private";
+
+        return modifiers
+        		.FirstOrDefault(m => 
+        				IsAccessModifier(m.ToString()))
+        				.ToString(); //?? "private";
     }
 
     private bool IsAccessModifier(string modifier)
@@ -370,13 +436,16 @@ public class SemanticClassComparer
     private class SignatureComparisonResult
     {
         public bool AreEqual { get; set; }
+        
         public List<MemberDifference> Differences { get; } = new List<MemberDifference>();
     }
 
     private class SemanticComparisonResult
     {
         public bool AreEqual { get; set; }
+
         public double SimilarityScore { get; set; }
+
         public List<MemberDifference> Differences { get; } = new List<MemberDifference>();
     }
 }

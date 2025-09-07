@@ -51,7 +51,9 @@ namespace SymanticCopy;
 
 public class DictionaryCsvSerializer
 {
-    public void Serialize<TKey, TValue>(Dictionary<TKey, TValue> dictionary, string filePath)
+    public void Serialize<TKey, TValue>(
+    	Dictionary<TKey, TValue> dictionary, 
+    	string filePath)
     {
         if (dictionary == null || dictionary.Count == 0)
         {
@@ -62,23 +64,34 @@ public class DictionaryCsvSerializer
         var csvContent = new StringBuilder();
 
         // Handle different dictionary types
-        if (typeof(TKey) == typeof(string) && typeof(TValue) == typeof(string))
+        if (typeof(TKey) == typeof(string) 
+        	&& typeof(TValue) == typeof(string))
         {
             SerializeStringDictionary(dictionary as Dictionary<string, string>, csvContent);
         }
-        else if (typeof(TValue).IsClass && typeof(TValue) != typeof(string))
+        else if (typeof(TValue).IsClass 
+        	&& typeof(TValue) != typeof(string))
         {
-            SerializeClassDictionary<TKey, TValue>(dictionary, csvContent);
+            SerializeClassDictionary<TKey, TValue>(
+            	dictionary,
+            	csvContent);
         }
         else
         {
-            SerializeGenericDictionary(dictionary, csvContent);
+            SerializeGenericDictionary(
+            	dictionary, 
+            	csvContent);
         }
 
-        File.WriteAllText(filePath, csvContent.ToString());
+        File.WriteAllText(
+        	filePath,
+        	csvContent.ToString());
     }
 
-    private void SerializeStringDictionary(Dictionary<string, string> dictionary, StringBuilder csvContent)
+    private void SerializeStringDictionary(
+    	Dictionary<string, 
+    	string> dictionary, 
+    	StringBuilder csvContent)
     {
         csvContent.AppendLine("Key,Value");
 
@@ -86,22 +99,30 @@ public class DictionaryCsvSerializer
         {
             var escapedKey = EscapeCsvField(kvp.Key);
             var escapedValue = EscapeCsvField(kvp.Value);
-            csvContent.AppendLine($"{escapedKey},{escapedValue}");
+
+            csvContent.AppendLine(
+            	$"{escapedKey},{escapedValue}");
         }
     }
 
-    private void SerializeClassDictionary<TKey, TValue>(Dictionary<TKey, TValue> dictionary, StringBuilder csvContent)
+    private void SerializeClassDictionary<TKey, TValue>(
+    	Dictionary<TKey, TValue> dictionary, 
+    	StringBuilder csvContent)
     {
         var properties = typeof(TValue).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
         var fields = typeof(TValue).GetFields(BindingFlags.Public | BindingFlags.Instance);
+
         var members = properties.Cast<MemberInfo>().Concat(fields.Cast<MemberInfo>()).ToArray();
 
         // Write header
         csvContent.Append("Key");
+
         foreach (var member in members)
         {
             csvContent.Append($",{member.Name}");
         }
+
         csvContent.AppendLine();
 
         // Write data rows
@@ -129,7 +150,9 @@ public class DictionaryCsvSerializer
         }
     }
 
-    private void SerializeGenericDictionary<TKey, TValue>(Dictionary<TKey, TValue> dictionary, StringBuilder csvContent)
+    private void SerializeGenericDictionary<TKey, TValue>(
+    	Dictionary<TKey, TValue> dictionary, 
+    	StringBuilder csvContent)
     {
         csvContent.AppendLine("Key,Value");
 
@@ -137,12 +160,14 @@ public class DictionaryCsvSerializer
         {
             var escapedKey = EscapeCsvField(kvp.Key?.ToString());
             var escapedValue = EscapeCsvField(kvp.Value?.ToString());
-            csvContent.AppendLine($"{escapedKey},{escapedValue}");
+
+            csvContent.AppendLine(
+            	$"{escapedKey},{escapedValue}");
         }
     }
 
     public Dictionary<TKey, TValue> Deserialize<TKey, TValue>(string filePath)
-    where TValue : new()
+   		 where TValue : new()
     {
         if (!File.Exists(filePath))
         {
@@ -150,16 +175,19 @@ public class DictionaryCsvSerializer
         }
 
         var lines = File.ReadAllLines(filePath);
+
         if (lines.Length == 0)
         {
             return new Dictionary<TKey, TValue>();
         }
 
-        if (typeof(TKey) == typeof(string) && typeof(TValue) == typeof(string))
+        if (typeof(TKey) == typeof(string) 
+        	&& typeof(TValue) == typeof(string))
         {
             return DeserializeStringDictionary(lines) as Dictionary<TKey, TValue>;
         }
-        else if (typeof(TValue).IsClass && typeof(TValue) != typeof(string))
+        else if (typeof(TValue).IsClass 
+        		&& typeof(TValue) != typeof(string))
         {
             return DeserializeClassDictionary<TKey, TValue>(lines);
         }
@@ -172,18 +200,24 @@ public class DictionaryCsvSerializer
     private Dictionary<string, string> DeserializeStringDictionary(string[] lines)
     {
         var dictionary = new Dictionary<string, string>();
-        if (lines.Length < 2) return dictionary;
+
+        if (lines.Length < 2) 
+        	return dictionary;
 
         for (int i = 1; i < lines.Length; i++)
         {
             var line = lines[i];
-            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            if (string.IsNullOrWhiteSpace(line)) 
+            	continue;
 
             var parts = SplitCsvLine(line);
+
             if (parts.Length >= 2)
             {
                 var key = UnescapeCsvField(parts[0]);
                 var value = UnescapeCsvField(parts[1]);
+
                 dictionary[key] = value;
             }
         }
@@ -191,9 +225,11 @@ public class DictionaryCsvSerializer
         return dictionary;
     }
 
-    private Dictionary<TKey, TValue> DeserializeClassDictionary<TKey, TValue>(string[] lines) where TValue : new()
+    private Dictionary<TKey, TValue> DeserializeClassDictionary<TKey, TValue>(string[] lines) 
+    	where TValue : new()
     {
         var dictionary = new Dictionary<TKey, TValue>();
+
         if (lines.Length < 2) return dictionary;
 
         var header = lines[0].Split(',');
@@ -202,9 +238,11 @@ public class DictionaryCsvSerializer
         for (int i = 1; i < lines.Length; i++)
         {
             var line = lines[i];
+
             if (string.IsNullOrWhiteSpace(line)) continue;
 
             var parts = SplitCsvLine(line);
+
             if (parts.Length == 0) continue;
 
             try
@@ -215,9 +253,11 @@ public class DictionaryCsvSerializer
                 for (int j = 1; j < parts.Length && j < header.Length; j++)
                 {
                     var memberName = header[j];
+
                     if (members.TryGetValue(memberName, out var member))
                     {
                         var fieldValue = UnescapeCsvField(parts[j]);
+
                         SetMemberValue(value, member, fieldValue);
                     }
                 }
@@ -226,7 +266,8 @@ public class DictionaryCsvSerializer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing line {i}: {ex.Message}");
+                Console.WriteLine(
+                	$"Error parsing line {i}: {ex.Message}");
             }
         }
 
@@ -236,6 +277,7 @@ public class DictionaryCsvSerializer
     private Dictionary<string, MemberInfo> GetClassMembers<T>()
     {
         var members = new Dictionary<string, MemberInfo>();
+
         var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
         var fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
 
@@ -252,15 +294,21 @@ public class DictionaryCsvSerializer
         return members;
     }
 
-    private void SetMemberValue(object obj, MemberInfo member, string stringValue)
+    private void SetMemberValue(
+    	object obj, 
+    	MemberInfo member, 
+    	string stringValue)
     {
-        if (string.IsNullOrEmpty(stringValue)) return;
+        if (string.IsNullOrEmpty(stringValue)) 
+        	return;
 
         try
         {
             object value = null;
-            var memberType = member is PropertyInfo prop ? prop.PropertyType :
-                           ((FieldInfo)member).FieldType;
+
+            var memberType = member is PropertyInfo prop ? 
+            					prop.PropertyType :
+                           		((FieldInfo)member).FieldType;
 
             if (memberType == typeof(string))
             {
@@ -272,7 +320,10 @@ public class DictionaryCsvSerializer
             }
             else
             {
-                value = Convert.ChangeType(stringValue, memberType, CultureInfo.InvariantCulture);
+                value = Convert.ChangeType(
+                	stringValue, 
+                	memberType, 
+                	CultureInfo.InvariantCulture);
             }
 
             if (member is PropertyInfo property)
@@ -286,32 +337,46 @@ public class DictionaryCsvSerializer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error setting {member.Name}: {ex.Message}");
+            Console.WriteLine(
+            	$"Error setting {member.Name}: {ex.Message}");
         }
     }
 
     private Dictionary<TKey, TValue> DeserializeGenericDictionary<TKey, TValue>(string[] lines)
     {
         var dictionary = new Dictionary<TKey, TValue>();
-        if (lines.Length < 2) return dictionary;
+
+        if (lines.Length < 2) 
+        	return dictionary;
 
         for (int i = 1; i < lines.Length; i++)
         {
             var line = lines[i];
-            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            if (string.IsNullOrWhiteSpace(line)) 
+            	continue;
 
             var parts = SplitCsvLine(line);
+
             if (parts.Length >= 2)
             {
                 try
                 {
-                    var key = (TKey)Convert.ChangeType(UnescapeCsvField(parts[0]), typeof(TKey));
-                    var value = (TValue)Convert.ChangeType(UnescapeCsvField(parts[1]), typeof(TValue));
+                    var key = (TKey)Convert.ChangeType(
+                    	UnescapeCsvField(
+                    		parts[0]), 
+                    		typeof(TKey));
+
+                    var value = (TValue)Convert.ChangeType(
+                    	UnescapeCsvField(parts[1]), 
+                    	typeof(TValue));
+
                     dictionary[key] = value;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error parsing line {i}: {ex.Message}");
+                    Console.WriteLine(
+                    	$"Error parsing line {i}: {ex.Message}");
                 }
             }
         }
@@ -321,27 +386,43 @@ public class DictionaryCsvSerializer
 
     private string EscapeCsvField(string field)
     {
-        if (field == null) return string.Empty;
-        if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
+        if (field == null) 
+        	return string.Empty;
+
+        if (field.Contains(",") || 
+        	field.Contains("\"") || 
+        	field.Contains("\n") || 
+        	field.Contains("\r"))
         {
             return $"\"{field.Replace("\"", "\"\"")}\"";
         }
+        
         return field;
     }
 
     private string UnescapeCsvField(string field)
     {
-        if (string.IsNullOrEmpty(field)) return field;
-        if (field.StartsWith("\"") && field.EndsWith("\""))
+        if (string.IsNullOrEmpty(field)) 
+        	return field;
+
+        if (field.StartsWith("\"") && 
+            field.EndsWith("\""))
         {
-            return field.Substring(1, field.Length - 2).Replace("\"\"", "\"");
+            return field.Substring(
+            	1,
+            	field.Length - 2)
+            	.Replace(
+            	"\"\"", 
+            	"\"");
         }
+        
         return field;
     }
 
     private string[] SplitCsvLine(string line)
     {
         var result = new List<string>();
+
         var inQuotes = false;
         var currentField = new StringBuilder();
 
@@ -351,7 +432,9 @@ public class DictionaryCsvSerializer
 
             if (c == '"')
             {
-                if (inQuotes && i < line.Length - 1 && line[i + 1] == '"')
+                if (inQuotes && 
+                	i < line.Length - 1 && 
+                	line[i + 1] == '"')
                 {
                     currentField.Append('"');
                     i++; // Skip next quote
@@ -364,6 +447,7 @@ public class DictionaryCsvSerializer
             else if (c == ',' && !inQuotes)
             {
                 result.Add(currentField.ToString());
+
                 currentField.Clear();
             }
             else
@@ -373,6 +457,7 @@ public class DictionaryCsvSerializer
         }
 
         result.Add(currentField.ToString());
+
         return result.ToArray();
     }
 }

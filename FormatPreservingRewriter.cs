@@ -11,13 +11,17 @@ namespace SymanticCopy;
 
 public static class FormatPreservingRewriter
 {
-    public static SyntaxNode PreserveFormatting(SyntaxNode originalRoot, SyntaxNode newRoot)
+    public static SyntaxNode PreserveFormatting(
+    	SyntaxNode originalRoot, 
+    	SyntaxNode newRoot)
     {
         var rewriter = new FormatPreservingSyntaxRewriter(originalRoot);
+
         return rewriter.Visit(newRoot);
     }
 
-    private class FormatPreservingSyntaxRewriter : CSharpSyntaxRewriter
+    private class FormatPreservingSyntaxRewriter 
+    	: CSharpSyntaxRewriter
     {
         private readonly SyntaxNode _originalRoot;
 

@@ -31,7 +31,10 @@ namespace SymanticCopy;
 
 public class ClassMigrationPatcher
 {
-    public void MigrateClass(string sourceFilePath, string destinationFilePath, string className)
+    public void MigrateClass(
+    	string sourceFilePath, 
+    	string destinationFilePath, 
+    	string className)
     {
         // Read and parse both files
         var sourceContent = File.ReadAllText(sourceFilePath);
@@ -50,7 +53,8 @@ public class ClassMigrationPatcher
 
         if (sourceClass == null)
         {
-            throw new InvalidOperationException($"Class {className} not found in source file");
+            throw new InvalidOperationException(
+            	$"Class {className} not found in source file");
         }
 
         // Find the corresponding class in destination
@@ -60,20 +64,29 @@ public class ClassMigrationPatcher
 
         if (destinationClass == null)
         {
-            throw new InvalidOperationException($"Class {className} not found in destination file");
+            throw new InvalidOperationException(
+            	$"Class {className} not found in destination file");
         }
 
         // Replace the class in destination with the one from source
-        var newDestinationRoot = destinationRoot.ReplaceNode(destinationClass, sourceClass);
+        var newDestinationRoot = destinationRoot.ReplaceNode(
+        		destinationClass, 
+        		sourceClass);
 
         // Preserve original file formatting and comments
-        newDestinationRoot = FormatPreservingRewriter.PreserveFormatting(destinationRoot, newDestinationRoot);
+        newDestinationRoot = FormatPreservingRewriter.PreserveFormatting(
+        		destinationRoot, 
+        		newDestinationRoot);
 
         // Write the modified file
-        File.WriteAllText(destinationFilePath, newDestinationRoot.ToFullString());
+        File.WriteAllText(
+        	destinationFilePath, 
+        	newDestinationRoot.ToFullString());
     }
 
-    public void MigrateClassesInSolution(string solutionPath, Dictionary<string, string> classMigrationMap)
+    public void MigrateClassesInSolution(
+    	string solutionPath, 
+    	Dictionary<string, string> classMigrationMap)
     {
         var solution = SolutionFile.Parse(solutionPath);
         var fileClassMap = BuildFileClassMap(solution);
@@ -83,22 +96,33 @@ public class ClassMigrationPatcher
             var sourceClassName = migration.Key;
             var destinationClassName = migration.Value;
 
-            if (!fileClassMap.TryGetValue(sourceClassName, out var sourceFile))
+            if (!fileClassMap.TryGetValue(
+            		sourceClassName, 
+            		out var sourceFile))
             {
-                Console.WriteLine($"Warning: Source class {sourceClassName} not found in solution");
+                Console.WriteLine(
+                	$"Warning: Source class {sourceClassName} not found in solution");
                 continue;
             }
 
-            if (!fileClassMap.TryGetValue(destinationClassName, out var destinationFile))
+            if (!fileClassMap.TryGetValue(
+            		destinationClassName, 
+            		out var destinationFile))
             {
-                Console.WriteLine($"Warning: Destination class {destinationClassName} not found in solution");
+                Console.WriteLine(
+                	$"Warning: Destination class {destinationClassName} not found in solution");
                 continue;
             }
 
             try
             {
-                MigrateClass(sourceFile.FilePath, destinationFile.FilePath, sourceClassName);
-                Console.WriteLine($"Successfully migrated {sourceClassName} from {sourceFile.FilePath} to {destinationFile.FilePath}");
+                MigrateClass(
+                	sourceFile.FilePath, 
+                	destinationFile.FilePath, 
+                	sourceClassName);
+
+                Console.WriteLine(
+                	$"Successfully migrated {sourceClassName} from {sourceFile.FilePath} to {destinationFile.FilePath}");
             }
             catch (Exception ex)
             {
@@ -107,13 +131,15 @@ public class ClassMigrationPatcher
         }
     }
 
-    private Dictionary<string, (string FilePath, ClassDeclarationSyntax Syntax)> BuildFileClassMap(SolutionFile solution)
+    private Dictionary<string, (string FilePath, ClassDeclarationSyntax Syntax)> 
+    		BuildFileClassMap(SolutionFile solution)
     {
         var map = new Dictionary<string, (string, ClassDeclarationSyntax)>();
 
         foreach (var project in solution.ProjectsInOrder)
         {
-            if (project.ProjectType != SolutionProjectType.KnownToBeMSBuildFormat) continue;
+            if (project.ProjectType != SolutionProjectType.KnownToBeMSBuildFormat) 
+            	continue;
 
             var projectDir = Path.GetDirectoryName(project.AbsolutePath);
             var csFiles = Directory.GetFiles(projectDir, "*.cs", SearchOption.AllDirectories);
@@ -123,16 +149,19 @@ public class ClassMigrationPatcher
                 try
                 {
                     var content = File.ReadAllText(filePath);
+
                     var tree = CSharpSyntaxTree.ParseText(content);
                     var root = tree.GetRoot();
 
                     var classes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+
                     foreach (var classDecl in classes)
                     {
                         var className = classDecl.Identifier.Text;
                         if (map.ContainsKey(className))
                         {
-                            Console.WriteLine($"Warning: Duplicate class name {className} found in {filePath}");
+                            Console.WriteLine(
+                            	$"Warning: Duplicate class name {className} found in {filePath}");
                             continue;
                         }
 

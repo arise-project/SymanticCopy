@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-
 namespace SymanticCopy;
 
 public class DotNetProjectParser
@@ -50,9 +49,13 @@ public class DotNetProjectParser
         return typeDecl switch
         {
             ClassDeclarationSyntax classDecl => classDecl.Identifier.Text,
+
             StructDeclarationSyntax structDecl => structDecl.Identifier.Text,
+
             RecordDeclarationSyntax recordDecl => recordDecl.Identifier.Text,
+
             InterfaceDeclarationSyntax interfaceDecl => interfaceDecl.Identifier.Text,
+
             _ => throw new NotSupportedException($"Unsupported type: {typeDecl.GetType().Name}")
         };
     }
@@ -78,18 +81,23 @@ public class DotNetProjectParser
         var classDictionary = new Dictionary<string, string>();
 
         // Get all .cs files in the project directory
-        var csFiles = Directory.GetFiles(projectDirectory, "*.cs", SearchOption.AllDirectories);
+        var csFiles = Directory.GetFiles(
+        	projectDirectory, 
+        	"*.cs", 
+        	SearchOption.AllDirectories);
 
         foreach (var filePath in csFiles)
         {
             try
             {
                 var fileContent = File.ReadAllText(filePath);
+
                 var syntaxTree = CSharpSyntaxTree.ParseText(fileContent);
                 var root = syntaxTree.GetRoot();
 
                 // Get all class declarations
-                var classDeclarations = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+                var classDeclarations = root.DescendantNodes()
+                							.OfType<ClassDeclarationSyntax>();
 
                 foreach (var classDecl in classDeclarations)
                 {
@@ -110,7 +118,8 @@ public class DotNetProjectParser
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
+                Console.WriteLine(
+                	$"Error processing file {filePath}: {ex.Message}");
             }
         }
 
@@ -134,9 +143,12 @@ public class DotNetProjectParser
         return normalized;
     }
 
-    public void SaveToCsv(Dictionary<string, string> classDictionary, string outputPath)
+    public void SaveToCsv(
+    	Dictionary<string, string> classDictionary, 
+    	string outputPath)
     {
         var csvContent = new StringBuilder();
+
         csvContent.AppendLine("ClassName,ClassContent");
 
         foreach (var kvp in classDictionary)
@@ -145,6 +157,7 @@ public class DotNetProjectParser
             var escapedContent = kvp.Value.Replace("\"", "\"\"")
                                          .Replace("\r", "\\r")
                                          .Replace("\n", "\\n");
+
             csvContent.AppendLine($"\"{kvp.Key}\",\"{escapedContent}\"");
         }
 
@@ -160,9 +173,11 @@ public class DotNetProjectParser
         foreach (var line in lines)
         {
             var parts = line.Split(new[] { "\",\"" }, StringSplitOptions.None);
+
             if (parts.Length >= 2)
             {
                 var className = parts[0].TrimStart('"');
+
                 var classContent = parts[1].TrimEnd('"')
                                           .Replace("\"\"", "\"")
                                           .Replace("\\r", "\r")
