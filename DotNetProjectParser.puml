@@ -1,0 +1,11 @@
+@startuml
+class DotNetProjectParser {
+    + ParseFile(filePath:string) : Dictionary<string, string>
+    - GetTypeName(typeDecl:SyntaxNode) : string
+    - NormalizeTypeContent(typeDecl:SyntaxNode) : string
+    + ParseProject(projectDirectory:string) : Dictionary<string, string>
+    - NormalizeClassContent(classDecl:ClassDeclarationSyntax) : string
+    + SaveToCsv(classDictionary:Dictionary<string, string>, outputPath:string) : void
+    + LoadFromCsv(inputPath:string) : Dictionary<string, string>
+}
+@enduml

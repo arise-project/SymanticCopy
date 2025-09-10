@@ -1,0 +1,56 @@
+@startuml
+class SemanticClassComparer {
+    + CompareClasses(class1Content:string, class2Content:string) : ComparisonResult
+    - CompareSignatures(class1:ClassDeclarationSyntax, class2:ClassDeclarationSyntax) : SignatureComparisonResult
+    - CompareImplementations(class1:ClassDeclarationSyntax, class2:ClassDeclarationSyntax) : SemanticComparisonResult
+    - CalculateCodeSimilarity(code1:string, code2:string) : double
+    - GetCodeTokens(code:string) : IEnumerable<string>
+    - IsKeyword(token:string) : bool
+    - GetSemanticHash(code:string) : string
+    - GetNormalizedImplementation(member:MemberDeclarationSyntax) : string
+    - GetMembers(classDecl:ClassDeclarationSyntax) : Dictionary<string, MemberDeclarationSyntax>
+    - GetMemberName(member:MemberDeclarationSyntax) : string
+    - GetMemberSignature(member:MemberDeclarationSyntax) : string
+    - GetAccessibility(member:MemberDeclarationSyntax) : string
+    - IsAccessModifier(modifier:string) : bool
+    - GetModifiers(member:MemberDeclarationSyntax) : IEnumerable<string>
+    - IsAbstractOrExtern(member:MemberDeclarationSyntax) : bool
+}
+class ComparisonResult {
+    + AreSignaturesEqual : bool <<get>> <<set>>
+    + AreImplementationsSemanticallyEqual : bool <<get>> <<set>>
+    + SimilarityScore : double <<get>> <<set>>
+}
+class MemberDifference {
+    + MemberName : string <<get>> <<set>>
+    + Description : string <<get>> <<set>>
+}
+enum DifferenceType {
+    SignatureChange,
+    ImplementationChange,
+    AddedMember,
+    RemovedMember,
+    AccessibilityChange,
+    ModifierChange,
+}
+class SignatureComparisonResult {
+    + AreEqual : bool <<get>> <<set>>
+}
+class SemanticComparisonResult {
+    + AreEqual : bool <<get>> <<set>>
+    + SimilarityScore : double <<get>> <<set>>
+}
+class "List`1"<T> {
+}
+SemanticClassComparer o-> "_hashAlgorithm" HashAlgorithm
+SemanticClassComparer +-- ComparisonResult
+ComparisonResult o-> "MemberDifferences<MemberDifference>" "List`1"
+ComparisonResult o-> "Warnings<string>" "List`1"
+SemanticClassComparer +-- MemberDifference
+MemberDifference --> "Type" DifferenceType
+SemanticClassComparer +-- DifferenceType
+SemanticClassComparer +-- SignatureComparisonResult
+SignatureComparisonResult o-> "Differences<MemberDifference>" "List`1"
+SemanticClassComparer +-- SemanticComparisonResult
+SemanticComparisonResult o-> "Differences<MemberDifference>" "List`1"
+@enduml

@@ -1,0 +1,7 @@
+@startuml
+class ClassMigrationPatcher {
+    + MigrateClass(sourceFilePath:string, destinationFilePath:string, className:string) : void
+    + MigrateClassesInSolution(solutionPath:string, classMigrationMap:Dictionary<string, string>) : void
+    - BuildFileClassMap(solution:SolutionFile) : Dictionary<string, (string FilePath, ClassDeclarationSyntax Syntax)>
+}
+@enduml

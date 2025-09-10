@@ -1,0 +1,18 @@
+@startuml
+class DictionaryCsvSerializer {
+    + Serialize(dictionary:Dictionary<TKey, TValue>, filePath:string) : void
+    - SerializeStringDictionary(dictionary:Dictionary<string, 
+    	string>, csvContent:StringBuilder) : void
+    - SerializeClassDictionary(dictionary:Dictionary<TKey, TValue>, csvContent:StringBuilder) : void
+    - SerializeGenericDictionary(dictionary:Dictionary<TKey, TValue>, csvContent:StringBuilder) : void
+    + Deserialize(filePath:string) : Dictionary<TKey, TValue>
+    - DeserializeStringDictionary(lines:string[]) : Dictionary<string, string>
+    - DeserializeClassDictionary(lines:string[]) : Dictionary<TKey, TValue>
+    - GetClassMembers() : Dictionary<string, MemberInfo>
+    - SetMemberValue(obj:object, member:MemberInfo, stringValue:string) : void
+    - DeserializeGenericDictionary(lines:string[]) : Dictionary<TKey, TValue>
+    - EscapeCsvField(field:string) : string
+    - UnescapeCsvField(field:string) : string
+    - SplitCsvLine(line:string) : string[]
+}
+@enduml

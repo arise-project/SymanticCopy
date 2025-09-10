@@ -1,0 +1,20 @@
+@startuml
+class SolutionPairAnalyzer {
+    + CompareSolutions(solution1Path:string, solution2Path:string) : AnalysisResult
+    - GetSolutionClassNames(solutionPath:string) : Dictionary<string, List<string>>
+    - GetRelativePath(fullPath:string, solutionPath:string) : string
+    + PrintComparisonResult(result:AnalysisResult) : void
+}
+class AnalysisResult {
+}
+class "List`1"<T> {
+}
+class "Dictionary`2"<T1,T2> {
+}
+SolutionPairAnalyzer +-- AnalysisResult
+AnalysisResult o-> "CommonClassNames<string>" "List`1"
+AnalysisResult o-> "Solution1Duplicates<string,List<string>>" "Dictionary`2"
+AnalysisResult o-> "Solution2Duplicates<string,List<string>>" "Dictionary`2"
+AnalysisResult o-> "Solution1Unique<string>" "List`1"
+AnalysisResult o-> "Solution2Unique<string>" "List`1"
+@enduml

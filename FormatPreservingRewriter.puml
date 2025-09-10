@@ -1,0 +1,12 @@
+@startuml
+class FormatPreservingRewriter <<static>> {
+    + {static} PreserveFormatting(originalRoot:SyntaxNode, newRoot:SyntaxNode) : SyntaxNode
+}
+class FormatPreservingSyntaxRewriter {
+    + FormatPreservingSyntaxRewriter(originalRoot:SyntaxNode)
+    + <<override>> VisitList(list:SyntaxTriviaList) : SyntaxTriviaList
+}
+FormatPreservingRewriter +-- FormatPreservingSyntaxRewriter
+CSharpSyntaxRewriter <|-- FormatPreservingSyntaxRewriter
+FormatPreservingSyntaxRewriter --> "_originalRoot" SyntaxNode
+@enduml

@@ -1,0 +1,124 @@
+@startuml
+class SolutionClassTraverser {
+    + ParseSolution(solutionPath:string) : Dictionary<string, string>
+    + ParseProject(projectPath:string) : Dictionary<string, string>
+    - GetProjectCsFiles(projectPath:string, projectDirectory:string) : List<string>
+    - MergeDictionaries(target:Dictionary<string, string>, source:Dictionary<string, string>) : void
+}
+SolutionClassTraverser o-> "_parser" DotNetProjectParser
+class ClassMigrationPatcher {
+    + MigrateClass(sourceFilePath:string, destinationFilePath:string, className:string) : void
+    + MigrateClassesInSolution(solutionPath:string, classMigrationMap:Dictionary<string, string>) : void
+    - BuildFileClassMap(solution:SolutionFile) : Dictionary<string, (string FilePath, ClassDeclarationSyntax Syntax)>
+}
+class DotNetProjectParser {
+    + ParseFile(filePath:string) : Dictionary<string, string>
+    - GetTypeName(typeDecl:SyntaxNode) : string
+    - NormalizeTypeContent(typeDecl:SyntaxNode) : string
+    + ParseProject(projectDirectory:string) : Dictionary<string, string>
+    - NormalizeClassContent(classDecl:ClassDeclarationSyntax) : string
+    + SaveToCsv(classDictionary:Dictionary<string, string>, outputPath:string) : void
+    + LoadFromCsv(inputPath:string) : Dictionary<string, string>
+}
+class FormatPreservingRewriter <<static>> {
+    + {static} PreserveFormatting(originalRoot:SyntaxNode, newRoot:SyntaxNode) : SyntaxNode
+}
+class FormatPreservingSyntaxRewriter {
+    + FormatPreservingSyntaxRewriter(originalRoot:SyntaxNode)
+    + <<override>> VisitList(list:SyntaxTriviaList) : SyntaxTriviaList
+}
+FormatPreservingRewriter +-- FormatPreservingSyntaxRewriter
+CSharpSyntaxRewriter <|-- FormatPreservingSyntaxRewriter
+FormatPreservingSyntaxRewriter --> "_originalRoot" SyntaxNode
+class SemanticClassComparer {
+    + CompareClasses(class1Content:string, class2Content:string) : ComparisonResult
+    - CompareSignatures(class1:ClassDeclarationSyntax, class2:ClassDeclarationSyntax) : SignatureComparisonResult
+    - CompareImplementations(class1:ClassDeclarationSyntax, class2:ClassDeclarationSyntax) : SemanticComparisonResult
+    - CalculateCodeSimilarity(code1:string, code2:string) : double
+    - GetCodeTokens(code:string) : IEnumerable<string>
+    - IsKeyword(token:string) : bool
+    - GetSemanticHash(code:string) : string
+    - GetNormalizedImplementation(member:MemberDeclarationSyntax) : string
+    - GetMembers(classDecl:ClassDeclarationSyntax) : Dictionary<string, MemberDeclarationSyntax>
+    - GetMemberName(member:MemberDeclarationSyntax) : string
+    - GetMemberSignature(member:MemberDeclarationSyntax) : string
+    - GetAccessibility(member:MemberDeclarationSyntax) : string
+    - IsAccessModifier(modifier:string) : bool
+    - GetModifiers(member:MemberDeclarationSyntax) : IEnumerable<string>
+    - IsAbstractOrExtern(member:MemberDeclarationSyntax) : bool
+}
+class ComparisonResult {
+    + AreSignaturesEqual : bool <<get>> <<set>>
+    + AreImplementationsSemanticallyEqual : bool <<get>> <<set>>
+    + SimilarityScore : double <<get>> <<set>>
+}
+class MemberDifference {
+    + MemberName : string <<get>> <<set>>
+    + Description : string <<get>> <<set>>
+}
+enum DifferenceType {
+    SignatureChange,
+    ImplementationChange,
+    AddedMember,
+    RemovedMember,
+    AccessibilityChange,
+    ModifierChange,
+}
+class SignatureComparisonResult {
+    + AreEqual : bool <<get>> <<set>>
+}
+class SemanticComparisonResult {
+    + AreEqual : bool <<get>> <<set>>
+    + SimilarityScore : double <<get>> <<set>>
+}
+class "List`1"<T> {
+}
+SemanticClassComparer o-> "_hashAlgorithm" HashAlgorithm
+SemanticClassComparer +-- ComparisonResult
+ComparisonResult o-> "MemberDifferences<MemberDifference>" "List`1"
+ComparisonResult o-> "Warnings<string>" "List`1"
+SemanticClassComparer +-- MemberDifference
+MemberDifference --> "Type" DifferenceType
+SemanticClassComparer +-- DifferenceType
+SemanticClassComparer +-- SignatureComparisonResult
+SignatureComparisonResult o-> "Differences<MemberDifference>" "List`1"
+SemanticClassComparer +-- SemanticComparisonResult
+SemanticComparisonResult o-> "Differences<MemberDifference>" "List`1"
+class DictionaryCsvSerializer {
+    + Serialize(dictionary:Dictionary<TKey, TValue>, filePath:string) : void
+    - SerializeStringDictionary(dictionary:Dictionary<string, 
+    	string>, csvContent:StringBuilder) : void
+    - SerializeClassDictionary(dictionary:Dictionary<TKey, TValue>, csvContent:StringBuilder) : void
+    - SerializeGenericDictionary(dictionary:Dictionary<TKey, TValue>, csvContent:StringBuilder) : void
+    + Deserialize(filePath:string) : Dictionary<TKey, TValue>
+    - DeserializeStringDictionary(lines:string[]) : Dictionary<string, string>
+    - DeserializeClassDictionary(lines:string[]) : Dictionary<TKey, TValue>
+    - GetClassMembers() : Dictionary<string, MemberInfo>
+    - SetMemberValue(obj:object, member:MemberInfo, stringValue:string) : void
+    - DeserializeGenericDictionary(lines:string[]) : Dictionary<TKey, TValue>
+    - EscapeCsvField(field:string) : string
+    - UnescapeCsvField(field:string) : string
+    - SplitCsvLine(line:string) : string[]
+}
+class Program {
+    {static} - Main(args:string[]) : void
+}
+class SolutionPairAnalyzer {
+    + CompareSolutions(solution1Path:string, solution2Path:string) : AnalysisResult
+    - GetSolutionClassNames(solutionPath:string) : Dictionary<string, List<string>>
+    - GetRelativePath(fullPath:string, solutionPath:string) : string
+    + PrintComparisonResult(result:AnalysisResult) : void
+}
+class AnalysisResult {
+}
+class "List`1"<T> {
+}
+class "Dictionary`2"<T1,T2> {
+}
+SolutionPairAnalyzer +-- AnalysisResult
+AnalysisResult o-> "CommonClassNames<string>" "List`1"
+AnalysisResult o-> "Solution1Duplicates<string,List<string>>" "Dictionary`2"
+AnalysisResult o-> "Solution2Duplicates<string,List<string>>" "Dictionary`2"
+AnalysisResult o-> "Solution1Unique<string>" "List`1"
+AnalysisResult o-> "Solution2Unique<string>" "List`1"
+@enduml

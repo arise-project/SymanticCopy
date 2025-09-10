@@ -1,0 +1,9 @@
+@startuml
+class SolutionClassTraverser {
+    + ParseSolution(solutionPath:string) : Dictionary<string, string>
+    + ParseProject(projectPath:string) : Dictionary<string, string>
+    - GetProjectCsFiles(projectPath:string, projectDirectory:string) : List<string>
+    - MergeDictionaries(target:Dictionary<string, string>, source:Dictionary<string, string>) : void
+}
+SolutionClassTraverser o-> "_parser" DotNetProjectParser
+@enduml
